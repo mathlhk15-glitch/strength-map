@@ -34,7 +34,7 @@
 
       <div class="form-group">
         <label for="input-code">개인 코드</label>
-        <input type="tel" id="input-code" placeholder="개인 코드 입력" inputmode="numeric">
+        <input type="tel" id="input-code" placeholder="우편번호+내 번호 (예: 517893)" inputmode="numeric">
       </div>
 
       <p id="login-error" class="error-text hidden"></p>
@@ -93,8 +93,9 @@
       </div>
 
       <div class="form-section">
-        <h3>한마디 <span class="optional-badge">선택</span></h3>
-        <textarea id="message-input" placeholder="짧은 한마디를 남겨보세요 (5~60자, 선택)" maxlength="60"></textarea>
+        <h3>이 친구에게 해주고 싶은 응원의 한마디</h3>
+        <p class="helper-text">친구가 가진 강점과 가능성을 보고, 힘이 되는 말을 남겨주세요.</p>
+        <textarea id="message-input" placeholder="예) 너의 끈기는 진짜 대단해. 앞으로도 그 모습 잃지 마! (5~60자)" maxlength="60"></textarea>
         <p id="message-counter" class="char-counter">0/60</p>
       </div>
 
