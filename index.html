@@ -109,11 +109,12 @@
       </div>
 
       <div class="form-section">
-  <h3>친구에게 추가 한마디 <span class="optional-badge">(선택사항)</span></h3>
-  <p class="helper-text">이 친구에게 응원이나 격려가 되는 말을 남겨보세요.</p>
-  <textarea id="message-input" placeholder="예) 너의 끈기는 진짜 대단해. 앞으로도 그 모습 잃지 마! (5~60자, 선택)" maxlength="60"></textarea>
-  <p id="message-counter" class="char-counter">0/60</p>
-</div>
+        <h3>친구에게 추가 한마디 <span class="optional-badge">선택사항</span></h3>
+        <p class="helper-text">이 친구에게 응원이나 격려가 되는 말을 남겨보세요.</p>
+        <textarea id="message-input" placeholder="예) 너의 끈기는 진짜 대단해. 앞으로도 그 모습 잃지 마! (5~60자, 선택)" maxlength="60"></textarea>
+        <p id="message-counter" class="char-counter">0/60</p>
+      </div>
+
       <p id="write-error" class="error-text hidden"></p>
 
     </div>
@@ -140,6 +141,63 @@
       <div class="done-icon">✓</div>
       <h2>제출 완료</h2>
       <p class="confirm-text">참여해 주셔서 감사합니다.<br>친구들이 발견한 나의 가능성을<br>곧 확인할 수 있어요.</p>
+      <button id="btn-view-result" class="btn btn-primary btn-large">내 결과 보기</button>
+    </div>
+  </section>
+
+  <!-- ===================== 화면 6: 내 결과 ===================== -->
+  <section id="screen-result" class="screen">
+    <div class="result-wrap">
+
+      <!-- 결과 미생성 안내 -->
+      <div id="result-not-ready" class="card center-card hidden">
+        <h2>아직 준비 중이에요</h2>
+        <p class="confirm-text">아직 결과가 정리되지 않았습니다.<br>선생님 안내 후 다시 확인해 주세요.</p>
+        <button id="btn-result-back-done" class="btn btn-secondary btn-large">돌아가기</button>
+      </div>
+
+      <!-- 결과 본문 -->
+      <div id="result-content" class="hidden">
+
+        <div class="result-header">
+          <p class="result-greeting-sub">한 학기 동안 함께해줘서 고마워</p>
+          <p class="result-greeting">친구들이 발견한 <span id="result-name"></span>의 강점지도</p>
+        </div>
+
+        <div class="result-card">
+          <h3 class="result-title">친구들이 발견한 너의 강점</h3>
+          <div id="result-strength-list"></div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="result-title">친구들이 기억한 너의 모습</h3>
+          <div id="result-reason-list"></div>
+        </div>
+
+        <div id="result-other-strength-wrap" class="result-card hidden">
+          <h3 class="result-title">친구들이 떠올린 너의 이미지</h3>
+          <p id="result-other-strength" class="result-tag-text"></p>
+        </div>
+
+        <div id="result-other-reason-wrap" class="result-card hidden">
+          <h3 class="result-title">기타 이유 모음</h3>
+          <p id="result-other-reason" class="result-tag-text"></p>
+        </div>
+
+        <div id="result-message-wrap" class="result-card hidden">
+          <h3 class="result-title">친구들이 남긴 한마디</h3>
+          <div id="result-message-list" class="message-list"></div>
+          <button id="btn-message-more" class="btn-more hidden">더 보기</button>
+        </div>
+
+        <div class="result-card center-card">
+          <p class="confirm-text">친구들이 발견한 너의 강점이<br>2학기 너의 새로운 가능성이 되길 바라 :)</p>
+        </div>
+
+        <button id="btn-result-back-done2" class="btn btn-text">처음 화면으로</button>
+
+      </div>
+
     </div>
   </section>
 

@@ -159,6 +159,8 @@ textarea {
   font-weight: 500;
   padding: 12px;
   margin-top: 4px;
+  width: 100%;
+  text-align: center;
 }
 
 .btn-icon {
@@ -349,11 +351,13 @@ textarea {
   border-radius: 20px;
 }
 
-.helper-text {
-  font-size: 13px;
+.optional-badge {
+  background: #e5e7eb;
   color: #6b7280;
-  margin-bottom: 8px;
-  line-height: 1.5;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
 }
 
 .option-grid {
@@ -393,6 +397,43 @@ textarea {
   font-size: 12px;
   color: #9ca3af;
   margin-top: 4px;
+}
+
+/* ===================== 강점1/강점2 블록 구분 ===================== */
+.strength-block {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 14px;
+  border: 1.5px solid #e5e7eb;
+}
+
+.step-badge {
+  background: #1e3a8a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.reason-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 16px;
+  margin-bottom: 10px;
+}
+
+.block-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 22px 0;
+}
+
+.helper-text {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  line-height: 1.5;
 }
 
 /* ===================== 로딩 오버레이 ===================== */
@@ -468,34 +509,113 @@ textarea {
   font-size: 15px;
   color: #4b5563;
   line-height: 1.7;
-  /* ===================== 강점1/강점2 블록 구분 (신규) ===================== */
-.strength-block {
+  margin: 14px 0 22px;
+}
+
+/* ===================== 결과 화면 ===================== */
+.result-wrap {
+  padding-bottom: 30px;
+}
+
+.result-header {
+  margin: 24px 0 16px;
+  text-align: center;
+}
+
+.result-greeting-sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.result-greeting {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.result-card {
   background: #fff;
   border-radius: 14px;
-  padding: 16px 14px;
-  border: 1.5px solid #e5e7eb;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.step-badge {
-  background: #1e3a8a;
-  color: #fff;
-  font-size: 11px;
+.result-title {
+  font-size: 15px;
   font-weight: 700;
-  padding: 2px 8px;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+
+.strength-card {
+  background: #eff6ff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.strength-card:last-child {
+  margin-bottom: 0;
+}
+
+.strength-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.strength-count {
+  font-size: 12px;
+  color: #1e40af;
+}
+
+.reason-tag {
+  display: inline-block;
+  font-size: 12px;
+  color: #4b5563;
+  background: #f1f5f9;
+  padding: 6px 12px;
   border-radius: 20px;
+  margin: 0 6px 6px 0;
 }
 
-.reason-title {
+.result-tag-text {
   font-size: 14px;
-  font-weight: 700;
-  margin-top: 16px;
-  margin-bottom: 10px;
+  color: #4b5563;
+  line-height: 1.7;
+  background: #f9fafb;
+  padding: 10px 12px;
+  border-radius: 10px;
 }
 
-.block-divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 22px 0;
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-  margin: 14px 0 22px;
+
+.message-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+.btn-more {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 600;
 }

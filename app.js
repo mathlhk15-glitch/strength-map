@@ -1,6 +1,6 @@
 /**
  * 우리 반 강점지도 - Frontend Logic
- * 강점1-이유1 / 강점2-이유2 분리 구조, 한마디는 선택
+ * 강점1-이유1 / 강점2-이유2 분리 구조, 한마디는 선택, 결과 조회 기능 포함
  */
 
 // ===================== 전역 상태 =====================
@@ -13,7 +13,6 @@ const state = {
   writtenTargets: [],
   currentTarget: null,
 
-  // 강점1/이유1, 강점2/이유2 각각 별도 관리
   selectedStrength1: null,
   selectedReason1: null,
   selectedStrength2: null,
@@ -238,7 +237,6 @@ function openWriteScreen(friend) {
   showScreen("screen-write");
 }
 
-// n = 1 또는 2 (강점1, 강점2 블록 구분)
 function renderStrengthOptions(n) {
   const wrap = document.getElementById("strength" + n + "-options");
   const allOptions = STRENGTH_LIST.concat(["기타 직접 입력"]);
@@ -262,7 +260,6 @@ function selectStrength(n, value, btn) {
   const currentValue = (n === 1) ? state.selectedStrength1 : state.selectedStrength2;
 
   if (currentValue === value) {
-    // 같은 걸 다시 누르면 선택 해제
     if (n === 1) state.selectedStrength1 = null; else state.selectedStrength2 = null;
     btn.classList.remove("selected");
   } else {
@@ -320,7 +317,6 @@ function selectReason(n, value, btn) {
   }
 }
 
-// 한마디 글자수 표시
 function initMessageCounter() {
   const input = document.getElementById("message-input");
   input.addEventListener("input", function () {
@@ -387,7 +383,7 @@ function validateAndBuildPayload() {
     }
   }
 
-  // 한마디: 선택 사항
+  // 한마디: 선택 사항 — 비어 있으면 검증 통과, 값이 있을 때만 길이/금칙어 검사
   const message = document.getElementById("message-input").value.trim();
   if (message) {
     if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
@@ -491,6 +487,137 @@ function handleConfirmSubmit() {
   });
 }
 
+// ===================== 화면 6: 내 결과 =====================
+function handleViewResultClick() {
+  showLoading("결과를 불러오는 중...");
+  apiGet({
+    action: "getMyResult",
+    classNo: state.classNo,
+    number: state.number,
+    code: state.code
+  }).then(function (res) {
+    hideLoading();
+
+    if (!res.ok) {
+      showErrorModal(res.message || "결과를 불러오지 못했습니다.", handleViewResultClick);
+      return;
+    }
+
+    if (!res.data.generated) {
+      document.getElementById("result-not-ready").classList.remove("hidden");
+      document.getElementById("result-content").classList.add("hidden");
+      showScreen("screen-result");
+      return;
+    }
+
+    document.getElementById("result-not-ready").classList.add("hidden");
+    document.getElementById("result-content").classList.remove("hidden");
+    renderResult(res.data.result);
+    showScreen("screen-result");
+  }).catch(function () {
+    hideLoading();
+    showErrorModal("네트워크 오류로 결과를 불러오지 못했습니다.", handleViewResultClick);
+  });
+}
+
+function renderResult(result) {
+  document.getElementById("result-name").textContent = escapeHTML(result['이름']);
+
+  const strengthItems = [
+    { label: result['강점1위'], count: result['강점1위횟수'] },
+    { label: result['강점2위'], count: result['강점2위횟수'] },
+    { label: result['강점3위'], count: result['강점3위횟수'] }
+  ];
+  renderStrengthCards("result-strength-list", strengthItems);
+
+  const reasonItems = [
+    { label: result['주요이유1위'], count: result['주요이유1위횟수'] },
+    { label: result['주요이유2위'], count: result['주요이유2위횟수'] },
+    { label: result['주요이유3위'], count: result['주요이유3위횟수'] }
+  ];
+  renderReasonTags("result-reason-list", reasonItems);
+
+  const otherStrength = String(result['기타강점모음'] || '').trim();
+  if (otherStrength) {
+    document.getElementById("result-other-strength-wrap").classList.remove("hidden");
+    document.getElementById("result-other-strength").textContent = otherStrength;
+  } else {
+    document.getElementById("result-other-strength-wrap").classList.add("hidden");
+  }
+
+  const otherReason = String(result['기타이유모음'] || '').trim();
+  if (otherReason) {
+    document.getElementById("result-other-reason-wrap").classList.remove("hidden");
+    document.getElementById("result-other-reason").textContent = otherReason;
+  } else {
+    document.getElementById("result-other-reason-wrap").classList.add("hidden");
+  }
+
+  renderMessages(result['한마디모음']);
+}
+
+// 강점 TOP3: "친구들이 OO번 골라주었어요" 표현, 순위 강조 없이 동등하게
+function renderStrengthCards(containerId, items) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = items.map(function (item) {
+    const label = String(item.label || '').trim();
+    const count = Number(item.count) || 0;
+    if (!label) return "";
+
+    return '<div class="strength-card">' +
+      '<span class="strength-name">' + escapeHTML(label) + '</span>' +
+      '<span class="strength-count">친구들이 ' + count + '번 골라주었어요</span>' +
+      '</div>';
+  }).join("");
+}
+
+// 이유 TOP3: 둥근 태그 형태
+function renderReasonTags(containerId, items) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = items.map(function (item) {
+    const label = String(item.label || '').trim();
+    if (!label) return "";
+    return '<span class="reason-tag">' + escapeHTML(label) + '</span>';
+  }).join("");
+}
+
+// 한마디: 5개까지만 표시, 초과 시 더보기 버튼
+function renderMessages(messagesRaw) {
+  const messages = String(messagesRaw || '').trim();
+  const wrap = document.getElementById("result-message-wrap");
+  const listEl = document.getElementById("result-message-list");
+  const moreBtn = document.getElementById("btn-message-more");
+
+  if (!messages) {
+    wrap.classList.add("hidden");
+    return;
+  }
+
+  wrap.classList.remove("hidden");
+  const list = messages.split("\n").filter(function (m) { return m.trim(); });
+
+  const visibleCount = 5;
+  const visibleList = list.slice(0, visibleCount);
+  const hiddenList = list.slice(visibleCount);
+
+  listEl.innerHTML = visibleList.map(function (m) {
+    return '<div class="message-item">' + escapeHTML(m) + '</div>';
+  }).join("");
+
+  if (hiddenList.length > 0) {
+    moreBtn.classList.remove("hidden");
+    moreBtn.textContent = "더 보기 (" + hiddenList.length + ")";
+    moreBtn.onclick = function () {
+      listEl.innerHTML += hiddenList.map(function (m) {
+        return '<div class="message-item">' + escapeHTML(m) + '</div>';
+      }).join("");
+      moreBtn.classList.add("hidden");
+    };
+  } else {
+    moreBtn.classList.add("hidden");
+  }
+}
+
 // ===================== 이벤트 바인딩 =====================
 function bindEvents() {
   document.getElementById("btn-back-dashboard").addEventListener("click", function () {
@@ -510,6 +637,15 @@ function bindEvents() {
   document.getElementById("btn-confirm-submit").addEventListener("click", handleConfirmSubmit);
   document.getElementById("btn-cancel-submit").addEventListener("click", function () {
     showScreen("screen-dashboard");
+  });
+
+  document.getElementById("btn-view-result").addEventListener("click", handleViewResultClick);
+
+  document.getElementById("btn-result-back-done").addEventListener("click", function () {
+    showScreen("screen-done");
+  });
+  document.getElementById("btn-result-back-done2").addEventListener("click", function () {
+    showScreen("screen-done");
   });
 
   document.getElementById("btn-retry").addEventListener("click", function () {
