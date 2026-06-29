@@ -76,26 +76,42 @@
 
     <div class="write-body">
 
-      <div class="form-section">
-        <h3>강점 2가지를 선택해 주세요 <span id="strength-count" class="count-badge">0/2</span></h3>
-        <div id="strength-options" class="option-grid"></div>
-        <div id="other-strength-wrap" class="other-input-wrap hidden">
-          <input type="text" id="other-strength-input" placeholder="강점 직접 입력 (2~8자)" maxlength="8">
+      <!-- 강점1 + 이유1 -->
+      <div class="form-section strength-block">
+        <h3>강점 ① <span class="step-badge">1번째</span></h3>
+        <div id="strength1-options" class="option-grid"></div>
+        <div id="other-strength1-wrap" class="other-input-wrap hidden">
+          <input type="text" id="other-strength1-input" placeholder="강점 직접 입력 (2~8자)" maxlength="8">
+        </div>
+
+        <h3 class="reason-title">왜 그렇게 생각했나요?</h3>
+        <div id="reason1-options" class="option-grid option-grid-single"></div>
+        <div id="other-reason1-wrap" class="other-input-wrap hidden">
+          <input type="text" id="other-reason1-input" placeholder="이유 직접 입력 (10~40자)" maxlength="40">
+        </div>
+      </div>
+
+      <div class="block-divider"></div>
+
+      <!-- 강점2 + 이유2 -->
+      <div class="form-section strength-block">
+        <h3>강점 ② <span class="step-badge">2번째</span></h3>
+        <div id="strength2-options" class="option-grid"></div>
+        <div id="other-strength2-wrap" class="other-input-wrap hidden">
+          <input type="text" id="other-strength2-input" placeholder="강점 직접 입력 (2~8자)" maxlength="8">
+        </div>
+
+        <h3 class="reason-title">왜 그렇게 생각했나요?</h3>
+        <div id="reason2-options" class="option-grid option-grid-single"></div>
+        <div id="other-reason2-wrap" class="other-input-wrap hidden">
+          <input type="text" id="other-reason2-input" placeholder="이유 직접 입력 (10~40자)" maxlength="40">
         </div>
       </div>
 
       <div class="form-section">
-        <h3>그렇게 생각한 이유 1가지를 선택해 주세요 <span id="reason-count" class="count-badge">0/1</span></h3>
-        <div id="reason-options" class="option-grid option-grid-single"></div>
-        <div id="other-reason-wrap" class="other-input-wrap hidden">
-          <input type="text" id="other-reason-input" placeholder="이유 직접 입력 (10~40자)" maxlength="40">
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3>이 친구에게 해주고 싶은 응원의 한마디</h3>
-        <p class="helper-text">친구가 가진 강점과 가능성을 보고, 힘이 되는 말을 남겨주세요.</p>
-        <textarea id="message-input" placeholder="예) 너의 끈기는 진짜 대단해. 앞으로도 그 모습 잃지 마! (5~60자)" maxlength="60"></textarea>
+        <h3>한마디 <span class="optional-badge">선택</span></h3>
+        <p class="helper-text">이 친구에게 응원이나 격려가 되는 말을 남겨보세요.</p>
+        <textarea id="message-input" placeholder="예) 너의 끈기는 진짜 대단해. 앞으로도 그 모습 잃지 마! (5~60자, 선택)" maxlength="60"></textarea>
         <p id="message-counter" class="char-counter">0/60</p>
       </div>
 
