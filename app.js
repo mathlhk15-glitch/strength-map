@@ -35,16 +35,44 @@ function hideLoading() {
 function showErrorModal(message, retryFn) {
   document.getElementById("error-modal-text").textContent = message;
   document.getElementById("error-modal").classList.remove("hidden");
+  document.getElementById("btn-retry").classList.remove("hidden");
   state.pendingSaveData = retryFn || null;
 }
+
+// 완료한 친구 카드 클릭 시 안내 (재시도 버튼 없음)
+function showAlreadyDoneModal() {
+  document.getElementById("error-modal-text").textContent = "이미 작성한 친구입니다. 수정이 필요하면 선생님께 말하세요.";
+  document.getElementById("error-modal").classList.remove("hidden");
+  document.getElementById("btn-retry").classList.add("hidden");
+  state.pendingSaveData = null;
+}
+
 function hideErrorModal() {
   document.getElementById("error-modal").classList.add("hidden");
+  document.getElementById("btn-retry").classList.remove("hidden"); // 다음 사용을 위해 복원
+}
+
+// ===================== HTML 안전 처리 =====================
+function escapeHTML(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 // ===================== 금칙어 필터 =====================
 function containsBannedWord(text) {
   if (!text) return false;
   return BANNED_WORDS.some(function (w) { return text.includes(w); });
+}
+
+// 의미 없는 한마디 차단 (자음/모음/구두점만 반복 등)
+function isMeaninglessMessage(text) {
+  const onlyConsonantsVowels = /^[ㄱ-ㅎㅏ-ㅣ\s.…!?~]+$/;
+  const tooRepetitive = /^(.)\1{2,}$/;
+  return onlyConsonantsVowels.test(text) || tooRepetitive.test(text);
 }
 
 // ===================== API 호출 =====================
@@ -117,7 +145,7 @@ function handleLogin() {
 function loadRosterAndProgress() {
   showLoading("불러오는 중...");
   Promise.all([
-    apiGet({ action: "getRoster", classNo: state.classNo }),
+    apiGet({ action: "getRoster", classNo: state.classNo, number: state.number, code: state.code }),
     apiGet({ action: "getProgress", classNo: state.classNo, number: state.number, code: state.code })
   ]).then(function (results) {
     hideLoading();
@@ -125,7 +153,7 @@ function loadRosterAndProgress() {
     const progressRes = results[1];
 
     if (!rosterRes.ok || !progressRes.ok) {
-      showErrorModal("데이터를 불러오지 못했습니다.", loadRosterAndProgress);
+      showErrorModal(rosterRes.message || progressRes.message || "데이터를 불러오지 못했습니다.", loadRosterAndProgress);
       return;
     }
 
@@ -160,15 +188,22 @@ function renderDashboard() {
   const grid = document.getElementById("friend-grid");
   grid.innerHTML = state.roster.map(function (friend) {
     const isDone = state.writtenTargets.includes(friend.number);
-    return '<div class="friend-card ' + (isDone ? "done" : "") + '" data-number="' + friend.number + '">' +
-      '<div class="f-number">' + friend.number + '번</div>' +
-      '<div class="f-name">' + friend.name + '</div>' +
+    return '<div class="friend-card ' + (isDone ? "done" : "") + '" data-number="' + escapeHTML(friend.number) + '" data-done="' + isDone + '">' +
+      '<div class="f-number">' + escapeHTML(friend.number) + '번</div>' +
+      '<div class="f-name">' + escapeHTML(friend.name) + '</div>' +
       '</div>';
   }).join("");
 
   grid.querySelectorAll(".friend-card").forEach(function (card) {
     card.addEventListener("click", function () {
+      const isDone = card.getAttribute("data-done") === "true";
       const num = card.getAttribute("data-number");
+
+      if (isDone) {
+        showAlreadyDoneModal();
+        return;
+      }
+
       const friend = state.roster.find(function (f) { return f.number === num; });
       openWriteScreen(friend);
     });
@@ -207,7 +242,7 @@ function renderStrengthOptions() {
   const allOptions = STRENGTH_LIST.concat(["기타 직접 입력"]);
 
   wrap.innerHTML = allOptions.map(function (s) {
-    return '<button type="button" class="option-btn" data-value="' + s + '">' + s + '</button>';
+    return '<button type="button" class="option-btn" data-value="' + escapeHTML(s) + '">' + escapeHTML(s) + '</button>';
   }).join("");
 
   wrap.querySelectorAll(".option-btn").forEach(function (btn) {
@@ -260,7 +295,7 @@ function renderReasonOptions() {
   const allOptions = REASON_LIST.concat(["기타 직접 입력"]);
 
   wrap.innerHTML = allOptions.map(function (r) {
-    return '<button type="button" class="option-btn" data-value="' + r + '">' + r + '</button>';
+    return '<button type="button" class="option-btn" data-value="' + escapeHTML(r) + '">' + escapeHTML(r) + '</button>';
   }).join("");
 
   wrap.querySelectorAll(".option-btn").forEach(function (btn) {
@@ -342,14 +377,20 @@ function validateAndBuildPayload() {
     }
   }
 
+  // 한마디: 필수
   const message = document.getElementById("message-input").value.trim();
-  if (message) {
-    if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
-      return { error: "한마디는 " + LIMITS.messageMin + "~" + LIMITS.messageMax + "자로 입력하거나, 비워두세요." };
-    }
-    if (containsBannedWord(message)) {
-      return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
-    }
+
+  if (!message) {
+    return { error: "이 친구에게 해주고 싶은 응원의 한마디를 남겨 주세요." };
+  }
+  if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
+    return { error: "한마디는 " + LIMITS.messageMin + "~" + LIMITS.messageMax + "자로 입력해 주세요." };
+  }
+  if (containsBannedWord(message)) {
+    return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
+  }
+  if (isMeaninglessMessage(message)) {
+    return { error: "조금 더 진심이 담긴 한마디를 남겨 주세요. (예: ㅇㅇ, ㅎㅎ만으로는 부족해요)" };
   }
 
   const payload = {
