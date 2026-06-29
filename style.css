@@ -171,6 +171,15 @@ textarea {
   padding: 8px 0;
 }
 
+.admin-link {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  text-decoration: none;
+}
+
 .error-text {
   color: #dc2626;
   font-size: 13px;
