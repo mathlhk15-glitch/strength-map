@@ -1,5 +1,6 @@
 /**
  * 우리 반 강점지도 - Frontend Logic
+ * 강점1-이유1 / 강점2-이유2 분리 구조, 한마디는 선택
  */
 
 // ===================== 전역 상태 =====================
@@ -8,12 +9,17 @@ const state = {
   number: null,
   code: null,
   name: null,
-  roster: [],          // 같은 반 친구 전체 (자기 제외)
-  writtenTargets: [],  // 작성 완료된 대상 번호 목록 (문자열)
-  currentTarget: null, // 현재 작성 중인 대상 {number, name, career}
-  selectedStrengths: [],
-  selectedReason: null,
-  pendingSaveData: null // 저장 실패 시 재시도용
+  roster: [],
+  writtenTargets: [],
+  currentTarget: null,
+
+  // 강점1/이유1, 강점2/이유2 각각 별도 관리
+  selectedStrength1: null,
+  selectedReason1: null,
+  selectedStrength2: null,
+  selectedReason2: null,
+
+  pendingSaveData: null
 };
 
 // ===================== 화면 전환 =====================
@@ -39,7 +45,6 @@ function showErrorModal(message, retryFn) {
   state.pendingSaveData = retryFn || null;
 }
 
-// 완료한 친구 카드 클릭 시 안내 (재시도 버튼 없음)
 function showAlreadyDoneModal() {
   document.getElementById("error-modal-text").textContent = "이미 작성한 친구입니다. 수정이 필요하면 선생님께 말하세요.";
   document.getElementById("error-modal").classList.remove("hidden");
@@ -49,7 +54,7 @@ function showAlreadyDoneModal() {
 
 function hideErrorModal() {
   document.getElementById("error-modal").classList.add("hidden");
-  document.getElementById("btn-retry").classList.remove("hidden"); // 다음 사용을 위해 복원
+  document.getElementById("btn-retry").classList.remove("hidden");
 }
 
 // ===================== HTML 안전 처리 =====================
@@ -68,22 +73,13 @@ function containsBannedWord(text) {
   return BANNED_WORDS.some(function (w) { return text.includes(w); });
 }
 
-// 의미 없는 한마디 차단 (자음/모음/구두점만 반복 등)
-function isMeaninglessMessage(text) {
-  const onlyConsonantsVowels = /^[ㄱ-ㅎㅏ-ㅣ\s.…!?~]+$/;
-  const tooRepetitive = /^(.)\1{2,}$/;
-  return onlyConsonantsVowels.test(text) || tooRepetitive.test(text);
-}
-
 // ===================== API 호출 =====================
-// GAS doGet 호출 (조회)
 function apiGet(params) {
   const query = new URLSearchParams(params).toString();
   return fetch(GAS_URL + "?" + query)
     .then(function (res) { return res.json(); });
 }
 
-// GAS doPost 호출 (저장) - text/plain으로 보내 CORS 프리플라이트 회피
 function apiPost(body) {
   return fetch(GAS_URL, {
     method: "POST",
@@ -141,7 +137,6 @@ function handleLogin() {
     });
 }
 
-// 명단 + 진행상황을 함께 불러와 대시보드 진입
 function loadRosterAndProgress() {
   showLoading("불러오는 중...");
   Promise.all([
@@ -216,29 +211,36 @@ function renderDashboard() {
 // ===================== 화면 3: 작성 화면 =====================
 function openWriteScreen(friend) {
   state.currentTarget = friend;
-  state.selectedStrengths = [];
-  state.selectedReason = null;
+  state.selectedStrength1 = null;
+  state.selectedReason1 = null;
+  state.selectedStrength2 = null;
+  state.selectedReason2 = null;
 
   document.getElementById("write-target-number").textContent = friend.number + "번";
   document.getElementById("write-target-name").textContent = friend.name;
   document.getElementById("write-target-career").textContent = friend.career ? "관심진로: " + friend.career : "";
 
-  renderStrengthOptions();
-  renderReasonOptions();
+  renderStrengthOptions(1);
+  renderReasonOptions(1);
+  renderStrengthOptions(2);
+  renderReasonOptions(2);
 
-  document.getElementById("other-strength-input").value = "";
-  document.getElementById("other-reason-input").value = "";
-  document.getElementById("message-input").value = "";
+  ["other-strength1-input", "other-reason1-input", "other-strength2-input", "other-reason2-input", "message-input"]
+    .forEach(function (id) { document.getElementById(id).value = ""; });
+
   document.getElementById("message-counter").textContent = "0/60";
-  document.getElementById("other-strength-wrap").classList.add("hidden");
-  document.getElementById("other-reason-wrap").classList.add("hidden");
+
+  ["other-strength1-wrap", "other-reason1-wrap", "other-strength2-wrap", "other-reason2-wrap"]
+    .forEach(function (id) { document.getElementById(id).classList.add("hidden"); });
+
   document.getElementById("write-error").classList.add("hidden");
 
   showScreen("screen-write");
 }
 
-function renderStrengthOptions() {
-  const wrap = document.getElementById("strength-options");
+// n = 1 또는 2 (강점1, 강점2 블록 구분)
+function renderStrengthOptions(n) {
+  const wrap = document.getElementById("strength" + n + "-options");
   const allOptions = STRENGTH_LIST.concat(["기타 직접 입력"]);
 
   wrap.innerHTML = allOptions.map(function (s) {
@@ -247,51 +249,39 @@ function renderStrengthOptions() {
 
   wrap.querySelectorAll(".option-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      toggleStrength(btn.getAttribute("data-value"), btn);
+      selectStrength(n, btn.getAttribute("data-value"), btn);
     });
   });
-
-  updateStrengthCount();
 }
 
-function toggleStrength(value, btn) {
-  const idx = state.selectedStrengths.indexOf(value);
+function selectStrength(n, value, btn) {
+  const wrap = document.getElementById("strength" + n + "-options");
+  const otherWrap = document.getElementById("other-strength" + n + "-wrap");
+  const otherInput = document.getElementById("other-strength" + n + "-input");
 
-  if (idx >= 0) {
-    state.selectedStrengths.splice(idx, 1);
+  const currentValue = (n === 1) ? state.selectedStrength1 : state.selectedStrength2;
+
+  if (currentValue === value) {
+    // 같은 걸 다시 누르면 선택 해제
+    if (n === 1) state.selectedStrength1 = null; else state.selectedStrength2 = null;
     btn.classList.remove("selected");
   } else {
-    if (state.selectedStrengths.length >= 2) return; // 2개 제한
-    state.selectedStrengths.push(value);
+    if (n === 1) state.selectedStrength1 = value; else state.selectedStrength2 = value;
+    wrap.querySelectorAll(".option-btn").forEach(function (b) { b.classList.remove("selected"); });
     btn.classList.add("selected");
   }
 
-  // 기타 입력칸 표시 여부
-  const otherWrap = document.getElementById("other-strength-wrap");
-  if (state.selectedStrengths.includes("기타 직접 입력")) {
+  const selected = (n === 1) ? state.selectedStrength1 : state.selectedStrength2;
+  if (selected === "기타 직접 입력") {
     otherWrap.classList.remove("hidden");
   } else {
     otherWrap.classList.add("hidden");
-    document.getElementById("other-strength-input").value = "";
+    otherInput.value = "";
   }
-
-  // 2개 다 채워지면 나머지 버튼 비활성화 느낌 주기(선택 안 된 버튼 dim)
-  const allBtns = document.querySelectorAll("#strength-options .option-btn");
-  const reachedLimit = state.selectedStrengths.length >= 2;
-  allBtns.forEach(function (b) {
-    const isSelected = b.classList.contains("selected");
-    b.disabled = reachedLimit && !isSelected;
-  });
-
-  updateStrengthCount();
 }
 
-function updateStrengthCount() {
-  document.getElementById("strength-count").textContent = state.selectedStrengths.length + "/2";
-}
-
-function renderReasonOptions() {
-  const wrap = document.getElementById("reason-options");
+function renderReasonOptions(n) {
+  const wrap = document.getElementById("reason" + n + "-options");
   const allOptions = REASON_LIST.concat(["기타 직접 입력"]);
 
   wrap.innerHTML = allOptions.map(function (r) {
@@ -300,39 +290,34 @@ function renderReasonOptions() {
 
   wrap.querySelectorAll(".option-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      selectReason(btn.getAttribute("data-value"), btn);
+      selectReason(n, btn.getAttribute("data-value"), btn);
     });
   });
-
-  updateReasonCount();
 }
 
-function selectReason(value, btn) {
-  const wrap = document.getElementById("reason-options");
+function selectReason(n, value, btn) {
+  const wrap = document.getElementById("reason" + n + "-options");
+  const otherWrap = document.getElementById("other-reason" + n + "-wrap");
+  const otherInput = document.getElementById("other-reason" + n + "-input");
 
-  if (state.selectedReason === value) {
-    // 같은 걸 다시 누르면 선택 해제
-    state.selectedReason = null;
+  const currentValue = (n === 1) ? state.selectedReason1 : state.selectedReason2;
+
+  if (currentValue === value) {
+    if (n === 1) state.selectedReason1 = null; else state.selectedReason2 = null;
     btn.classList.remove("selected");
   } else {
-    state.selectedReason = value;
+    if (n === 1) state.selectedReason1 = value; else state.selectedReason2 = value;
     wrap.querySelectorAll(".option-btn").forEach(function (b) { b.classList.remove("selected"); });
     btn.classList.add("selected");
   }
 
-  const otherWrap = document.getElementById("other-reason-wrap");
-  if (state.selectedReason === "기타 직접 입력") {
+  const selected = (n === 1) ? state.selectedReason1 : state.selectedReason2;
+  if (selected === "기타 직접 입력") {
     otherWrap.classList.remove("hidden");
   } else {
     otherWrap.classList.add("hidden");
-    document.getElementById("other-reason-input").value = "";
+    otherInput.value = "";
   }
-
-  updateReasonCount();
-}
-
-function updateReasonCount() {
-  document.getElementById("reason-count").textContent = (state.selectedReason ? "1" : "0") + "/1";
 }
 
 // 한마디 글자수 표시
@@ -348,49 +333,69 @@ function validateAndBuildPayload() {
   const errorEl = document.getElementById("write-error");
   errorEl.classList.add("hidden");
 
-  if (state.selectedStrengths.length !== 2) {
-    return { error: "강점을 정확히 2개 선택해 주세요." };
+  if (!state.selectedStrength1 || !state.selectedReason1) {
+    return { error: "강점①과 그 이유를 모두 선택해 주세요." };
   }
-  if (!state.selectedReason) {
-    return { error: "이유를 1개 선택해 주세요." };
+  if (!state.selectedStrength2 || !state.selectedReason2) {
+    return { error: "강점②와 그 이유를 모두 선택해 주세요." };
   }
-
-  let otherStrength = "";
-  if (state.selectedStrengths.includes("기타 직접 입력")) {
-    otherStrength = document.getElementById("other-strength-input").value.trim();
-    if (otherStrength.length < LIMITS.otherStrengthMin || otherStrength.length > LIMITS.otherStrengthMax) {
-      return { error: "기타 강점은 " + LIMITS.otherStrengthMin + "~" + LIMITS.otherStrengthMax + "자로 입력해 주세요." };
-    }
-    if (containsBannedWord(otherStrength)) {
-      return { error: "강점 입력에 적절하지 않은 표현이 포함되어 있습니다." };
-    }
+  if (state.selectedStrength1 === state.selectedStrength2) {
+    return { error: "강점①과 강점②는 서로 다른 것으로 선택해 주세요." };
   }
 
-  let otherReason = "";
-  if (state.selectedReason === "기타 직접 입력") {
-    otherReason = document.getElementById("other-reason-input").value.trim();
-    if (otherReason.length < LIMITS.otherReasonMin || otherReason.length > LIMITS.otherReasonMax) {
-      return { error: "기타 이유는 " + LIMITS.otherReasonMin + "~" + LIMITS.otherReasonMax + "자로 입력해 주세요." };
+  let otherStrength1 = "";
+  if (state.selectedStrength1 === "기타 직접 입력") {
+    otherStrength1 = document.getElementById("other-strength1-input").value.trim();
+    if (otherStrength1.length < LIMITS.otherStrengthMin || otherStrength1.length > LIMITS.otherStrengthMax) {
+      return { error: "강점① 기타 입력은 " + LIMITS.otherStrengthMin + "~" + LIMITS.otherStrengthMax + "자로 입력해 주세요." };
     }
-    if (containsBannedWord(otherReason)) {
-      return { error: "이유 입력에 적절하지 않은 표현이 포함되어 있습니다." };
+    if (containsBannedWord(otherStrength1)) {
+      return { error: "강점① 입력에 적절하지 않은 표현이 포함되어 있습니다." };
     }
   }
 
-  // 한마디: 필수
+  let otherReason1 = "";
+  if (state.selectedReason1 === "기타 직접 입력") {
+    otherReason1 = document.getElementById("other-reason1-input").value.trim();
+    if (otherReason1.length < LIMITS.otherReasonMin || otherReason1.length > LIMITS.otherReasonMax) {
+      return { error: "강점① 이유 기타 입력은 " + LIMITS.otherReasonMin + "~" + LIMITS.otherReasonMax + "자로 입력해 주세요." };
+    }
+    if (containsBannedWord(otherReason1)) {
+      return { error: "강점① 이유 입력에 적절하지 않은 표현이 포함되어 있습니다." };
+    }
+  }
+
+  let otherStrength2 = "";
+  if (state.selectedStrength2 === "기타 직접 입력") {
+    otherStrength2 = document.getElementById("other-strength2-input").value.trim();
+    if (otherStrength2.length < LIMITS.otherStrengthMin || otherStrength2.length > LIMITS.otherStrengthMax) {
+      return { error: "강점② 기타 입력은 " + LIMITS.otherStrengthMin + "~" + LIMITS.otherStrengthMax + "자로 입력해 주세요." };
+    }
+    if (containsBannedWord(otherStrength2)) {
+      return { error: "강점② 입력에 적절하지 않은 표현이 포함되어 있습니다." };
+    }
+  }
+
+  let otherReason2 = "";
+  if (state.selectedReason2 === "기타 직접 입력") {
+    otherReason2 = document.getElementById("other-reason2-input").value.trim();
+    if (otherReason2.length < LIMITS.otherReasonMin || otherReason2.length > LIMITS.otherReasonMax) {
+      return { error: "강점② 이유 기타 입력은 " + LIMITS.otherReasonMin + "~" + LIMITS.otherReasonMax + "자로 입력해 주세요." };
+    }
+    if (containsBannedWord(otherReason2)) {
+      return { error: "강점② 이유 입력에 적절하지 않은 표현이 포함되어 있습니다." };
+    }
+  }
+
+  // 한마디: 선택 사항
   const message = document.getElementById("message-input").value.trim();
-
-  if (!message) {
-    return { error: "이 친구에게 해주고 싶은 응원의 한마디를 남겨 주세요." };
-  }
-  if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
-    return { error: "한마디는 " + LIMITS.messageMin + "~" + LIMITS.messageMax + "자로 입력해 주세요." };
-  }
-  if (containsBannedWord(message)) {
-    return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
-  }
-  if (isMeaninglessMessage(message)) {
-    return { error: "조금 더 진심이 담긴 한마디를 남겨 주세요. (예: ㅇㅇ, ㅎㅎ만으로는 부족해요)" };
+  if (message) {
+    if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
+      return { error: "한마디는 " + LIMITS.messageMin + "~" + LIMITS.messageMax + "자로 입력하거나, 비워두세요." };
+    }
+    if (containsBannedWord(message)) {
+      return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
+    }
   }
 
   const payload = {
@@ -399,11 +404,14 @@ function validateAndBuildPayload() {
     number: state.number,
     code: state.code,
     targetNumber: state.currentTarget.number,
-    strength1: state.selectedStrengths[0],
-    strength2: state.selectedStrengths[1],
-    reason: state.selectedReason,
-    otherStrength: otherStrength,
-    otherReason: otherReason,
+    strength1: state.selectedStrength1,
+    reason1: state.selectedReason1,
+    otherStrength1: otherStrength1,
+    otherReason1: otherReason1,
+    strength2: state.selectedStrength2,
+    reason2: state.selectedReason2,
+    otherStrength2: otherStrength2,
+    otherReason2: otherReason2,
     message: message
   };
 
@@ -428,7 +436,6 @@ function saveFeedback(nextAction) {
         return;
       }
 
-      // 로컬 상태 갱신
       if (!state.writtenTargets.includes(state.currentTarget.number)) {
         state.writtenTargets.push(state.currentTarget.number);
       }
