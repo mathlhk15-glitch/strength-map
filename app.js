@@ -556,7 +556,7 @@ function renderResult(result) {
   renderMessages(result['한마디모음']);
 }
 
-// 강점 TOP3: "친구들이 OO번 골라주었어요" 표현, 순위 강조 없이 동등하게
+// 강점 TOP3: "OO명의 친구가 추천했어요" 표현, 순위 강조 없이 동등하게
 function renderStrengthCards(containerId, items) {
   const container = document.getElementById(containerId);
   container.innerHTML = items.map(function (item) {
@@ -566,7 +566,7 @@ function renderStrengthCards(containerId, items) {
 
     return '<div class="strength-card">' +
       '<span class="strength-name">' + escapeHTML(label) + '</span>' +
-      '<span class="strength-count">친구들이 ' + count + '번 골라주었어요</span>' +
+      '<span class="strength-count">' + count + '명의 친구가 추천했어요</span>' +
       '</div>';
   }).join("");
 }
