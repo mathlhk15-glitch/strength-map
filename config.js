@@ -51,5 +51,5 @@ const LIMITS = {
 // ===== 반 목록 (1~9반, 필요시 직접 수정) =====
 const CLASS_LIST = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
-// ===== 번호 목록 (1~30번, 필요시 직접 수정) =====
-const NUMBER_LIST = Array.from({ length: 30 }, (_, i) => String(i + 1));
+// ===== 번호 목록 (1~24번, 한 반 최대 인원 기준) =====
+const NUMBER_LIST = Array.from({ length: 24 }, (_, i) => String(i + 1));
