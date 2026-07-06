@@ -3,7 +3,7 @@
  * Google Apps Script 배포 후 웹앱 URL을 아래에 붙여넣으세요.
  */
 
-const GAS_URL = "여기에_Google_Apps_Script_웹앱_URL";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxI4eNvcB7FO_zCA-8RtkhfZ51IYDlTHcLQbi6zclXoWKSKs4tsLVp2MGX2oC4Ppz3F/exec";
 
 // ===== 강점 목록 (정확히 2개 선택) =====
 const STRENGTH_LIST = [
