@@ -261,18 +261,24 @@ function renderAllStudents(students) {
     }).join("");
 
     const otherStrength = String(s['기타강점모음'] || '').trim();
-    const otherReason = String(s['기타이유모음'] || '').trim();
-    const messages = String(s['전체피드백모음'] || s['한마디모음'] || '').trim();
+const otherReason = String(s['기타이유모음'] || '').trim();
 
-let messageList = [];
-if (messages) {
-  if (messages.indexOf("---FEEDBACK---") >= 0) {
-    messageList = messages.split("---FEEDBACK---").filter(function (m) { return m.trim(); });
+const feedbacks = String(s['전체피드백모음'] || '').trim();
+const messages = String(s['한마디모음'] || '').trim();
+
+let feedbackList = [];
+if (feedbacks) {
+  if (feedbacks.indexOf("---FEEDBACK---") >= 0) {
+    feedbackList = feedbacks.split("---FEEDBACK---").filter(function (m) { return m.trim(); });
   } else {
-    messageList = messages.split("\n").filter(function (m) { return m.trim(); });
+    feedbackList = feedbacks.split("\n").filter(function (m) { return m.trim(); });
   }
 }
 
+let messageList = [];
+if (messages) {
+  messageList = messages.split("\n").filter(function (m) { return m.trim(); });
+}
     let block = '<div class="student-card">';
     block += '<div class="student-header">' + escapeHTML(s['번호']) + '번 ' + escapeHTML(s['이름']) + '</div>';
     block += '<p class="student-section-title">강점 TOP3</p>' + strengthRows;
@@ -286,18 +292,32 @@ if (messages) {
       block += '<p class="student-section-title">기타 이유</p>';
       block += '<div class="other-text-admin">' + escapeHTML(otherReason) + '</div>';
     }
-    block += '<p class="student-section-title">친구들이 남긴 전체 롤링페이퍼</p>';
+    block += '<p class="student-section-title">친구들이 발견한 강점과 이유</p>';
 
-if (messageList.length > 0) {
+if (feedbackList.length > 0) {
   block += '<div class="message-list-admin">';
-  block += messageList.map(function (m) {
+  block += feedbackList.map(function (m) {
     return '<div class="message-admin">' +
       escapeHTML(m.trim()).replace(/\n/g, '<br>') +
       '</div>';
   }).join("");
   block += '</div>';
 } else {
-  block += '<div class="message-admin muted">아직 표시할 롤링페이퍼 내용이 없습니다.</div>';
+  block += '<div class="message-admin muted">아직 표시할 강점·이유 내용이 없습니다.</div>';
+}
+
+block += '<p class="student-section-title">친구들이 남긴 한마디</p>';
+
+if (messageList.length > 0) {
+  block += '<div class="message-list-admin">';
+  block += messageList.map(function (m) {
+    return '<div class="message-admin">' +
+      escapeHTML(m.trim()) +
+      '</div>';
+  }).join("");
+  block += '</div>';
+} else {
+  block += '<div class="message-admin muted">아직 표시할 한마디가 없습니다.</div>';
 }
     block += '</div>';
     return block;
