@@ -269,15 +269,21 @@ const messages = String(s['한마디모음'] || '').trim();
 let feedbackList = [];
 if (feedbacks) {
   if (feedbacks.indexOf("---FEEDBACK---") >= 0) {
-    feedbackList = feedbacks.split("---FEEDBACK---").filter(function (m) { return m.trim(); });
+    feedbackList = feedbacks.split("---FEEDBACK---").filter(function (m) {
+      return m.trim();
+    });
   } else {
-    feedbackList = feedbacks.split("\n").filter(function (m) { return m.trim(); });
+    feedbackList = feedbacks.split("\n").filter(function (m) {
+      return m.trim();
+    });
   }
 }
 
 let messageList = [];
 if (messages) {
-  messageList = messages.split("\n").filter(function (m) { return m.trim(); });
+  messageList = messages.split("\n").filter(function (m) {
+    return m.trim();
+  });
 }
     let block = '<div class="student-card">';
     block += '<div class="student-header">' + escapeHTML(s['번호']) + '번 ' + escapeHTML(s['이름']) + '</div>';
