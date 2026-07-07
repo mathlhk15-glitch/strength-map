@@ -112,14 +112,27 @@
     border-radius: 6px;
     margin-top: 4px;
   }
-  .message-admin {
-    font-size: 12px;
-    color: #1e3a8a;
-    background: #eff6ff;
-    padding: 6px 10px;
-    border-radius: 8px;
-    margin: 4px 0;
-  }
+ .message-list-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-admin {
+  font-size: 12px;
+  color: #1e3a8a;
+  background: #eff6ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin: 4px 0;
+  line-height: 1.6;
+  white-space: normal;
+}
+
+.message-admin.muted {
+  color: #6b7280;
+  background: #f9fafb;
+}
   .top-bar {
     max-width: 900px;
     margin: 0 auto 16px;
@@ -273,12 +286,19 @@ if (messages) {
       block += '<p class="student-section-title">기타 이유</p>';
       block += '<div class="other-text-admin">' + escapeHTML(otherReason) + '</div>';
     }
-    if (messageList.length > 0) {
-      block += '<p class="student-section-title">친구들이 남긴 전체 롤링페이퍼</p>';
-      block += messageList.map(function (m) {
-        return '<div class="message-admin">' + escapeHTML(m) + '</div>';
-      }).join("");
-    }
+    block += '<p class="student-section-title">친구들이 남긴 전체 롤링페이퍼</p>';
+
+if (messageList.length > 0) {
+  block += '<div class="message-list-admin">';
+  block += messageList.map(function (m) {
+    return '<div class="message-admin">' +
+      escapeHTML(m.trim()).replace(/\n/g, '<br>') +
+      '</div>';
+  }).join("");
+  block += '</div>';
+} else {
+  block += '<div class="message-admin muted">아직 표시할 롤링페이퍼 내용이 없습니다.</div>';
+}
     block += '</div>';
     return block;
   }).join("");
