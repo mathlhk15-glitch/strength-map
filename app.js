@@ -580,8 +580,6 @@ function renderReasonTags(containerId, items) {
     return '<span class="reason-tag">' + escapeHTML(label) + '</span>';
   }).join("");
 }
-
-// 한마디: 5개까지만 표시, 초과 시 더보기 버튼
 function renderMessages(messagesRaw) {
   const messages = String(messagesRaw || '').trim();
   const wrap = document.getElementById("result-message-wrap");
@@ -590,16 +588,22 @@ function renderMessages(messagesRaw) {
 
   if (!messages) {
     wrap.classList.add("hidden");
+    listEl.innerHTML = "";
+    moreBtn.classList.add("hidden");
     return;
   }
 
   wrap.classList.remove("hidden");
 
-  let list;
+  let list = [];
   if (messages.indexOf("---FEEDBACK---") >= 0) {
-    list = messages.split("---FEEDBACK---").filter(function (m) { return m.trim(); });
+    list = messages.split("---FEEDBACK---").filter(function (m) {
+      return m.trim();
+    });
   } else {
-    list = messages.split("\n").filter(function (m) { return m.trim(); });
+    list = messages.split("\n").filter(function (m) {
+      return m.trim();
+    });
   }
 
   const visibleCount = 5;
@@ -607,7 +611,9 @@ function renderMessages(messagesRaw) {
   const hiddenList = list.slice(visibleCount);
 
   listEl.innerHTML = visibleList.map(function (m) {
-    return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
+    return '<div class="message-item">' +
+      escapeHTML(m.trim()).replace(/\n/g, '<br>') +
+      '</div>';
   }).join("");
 
   if (hiddenList.length > 0) {
@@ -615,7 +621,9 @@ function renderMessages(messagesRaw) {
     moreBtn.textContent = "더 보기 (" + hiddenList.length + ")";
     moreBtn.onclick = function () {
       listEl.innerHTML += hiddenList.map(function (m) {
-        return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
+        return '<div class="message-item">' +
+          escapeHTML(m.trim()).replace(/\n/g, '<br>') +
+          '</div>';
       }).join("");
       moreBtn.classList.add("hidden");
     };
@@ -623,32 +631,6 @@ function renderMessages(messagesRaw) {
     moreBtn.classList.add("hidden");
   }
 }
-
-  wrap.classList.remove("hidden");
-  const list = messages.split("\n").filter(function (m) { return m.trim(); });
-
-  const visibleCount = 5;
-  const visibleList = list.slice(0, visibleCount);
-  const hiddenList = list.slice(visibleCount);
-
-  listEl.innerHTML = visibleList.map(function (m) {
-    return '<div class="message-item">' + escapeHTML(m) + '</div>';
-  }).join("");
-
-  if (hiddenList.length > 0) {
-    moreBtn.classList.remove("hidden");
-    moreBtn.textContent = "더 보기 (" + hiddenList.length + ")";
-    moreBtn.onclick = function () {
-      listEl.innerHTML += hiddenList.map(function (m) {
-        return '<div class="message-item">' + escapeHTML(m) + '</div>';
-      }).join("");
-      moreBtn.classList.add("hidden");
-    };
-  } else {
-    moreBtn.classList.add("hidden");
-  }
-}
-
 // ===================== 이벤트 바인딩 =====================
 function bindEvents() {
   document.getElementById("btn-back-dashboard").addEventListener("click", function () {
