@@ -40,12 +40,9 @@ const BANNED_WORDS = [
 
 // ===== 입력 길이 제한 =====
 const LIMITS = {
-  otherStrengthMin: 2,
-  otherStrengthMax: 8,
-  otherReasonMin: 10,
-  otherReasonMax: 40,
-  messageMin: 5,
-  messageMax: 60
+  otherStrengthMin: 1,
+  otherReasonMin: 1,
+  messageMin: 0
 };
 
 // ===== 반 목록 (1~9반, 필요시 직접 수정) =====
