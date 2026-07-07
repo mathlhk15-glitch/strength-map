@@ -553,7 +553,7 @@ function renderResult(result) {
     document.getElementById("result-other-reason-wrap").classList.add("hidden");
   }
 
-  renderMessages(result['한마디모음']);
+  renderMessages(result['전체피드백모음'] || result['한마디모음']);
 }
 
 // 강점 TOP3: "OO명의 친구가 추천했어요" 표현, 순위 강조 없이 동등하게
@@ -592,6 +592,37 @@ function renderMessages(messagesRaw) {
     wrap.classList.add("hidden");
     return;
   }
+
+  wrap.classList.remove("hidden");
+
+  let list;
+  if (messages.indexOf("---FEEDBACK---") >= 0) {
+    list = messages.split("---FEEDBACK---").filter(function (m) { return m.trim(); });
+  } else {
+    list = messages.split("\n").filter(function (m) { return m.trim(); });
+  }
+
+  const visibleCount = 5;
+  const visibleList = list.slice(0, visibleCount);
+  const hiddenList = list.slice(visibleCount);
+
+  listEl.innerHTML = visibleList.map(function (m) {
+    return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
+  }).join("");
+
+  if (hiddenList.length > 0) {
+    moreBtn.classList.remove("hidden");
+    moreBtn.textContent = "더 보기 (" + hiddenList.length + ")";
+    moreBtn.onclick = function () {
+      listEl.innerHTML += hiddenList.map(function (m) {
+        return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
+      }).join("");
+      moreBtn.classList.add("hidden");
+    };
+  } else {
+    moreBtn.classList.add("hidden");
+  }
+}
 
   wrap.classList.remove("hidden");
   const list = messages.split("\n").filter(function (m) { return m.trim(); });
