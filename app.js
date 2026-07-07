@@ -227,8 +227,8 @@ function openWriteScreen(friend) {
   ["other-strength1-input", "other-reason1-input", "other-strength2-input", "other-reason2-input", "message-input"]
     .forEach(function (id) { document.getElementById(id).value = ""; });
 
-  document.getElementById("message-counter").textContent = "0/60";
-
+  document.getElementById("message-counter").textContent = "0자";
+  
   ["other-strength1-wrap", "other-reason1-wrap", "other-strength2-wrap", "other-reason2-wrap"]
     .forEach(function (id) { document.getElementById(id).classList.add("hidden"); });
 
@@ -320,7 +320,7 @@ function selectReason(n, value, btn) {
 function initMessageCounter() {
   const input = document.getElementById("message-input");
   input.addEventListener("input", function () {
-    document.getElementById("message-counter").textContent = input.value.length + "/60";
+    document.getElementById("message-counter").textContent = input.value.length + "자";
   });
 }
 
@@ -342,9 +342,9 @@ function validateAndBuildPayload() {
   let otherStrength1 = "";
   if (state.selectedStrength1 === "기타 직접 입력") {
     otherStrength1 = document.getElementById("other-strength1-input").value.trim();
-    if (otherStrength1.length < LIMITS.otherStrengthMin || otherStrength1.length > LIMITS.otherStrengthMax) {
-      return { error: "강점① 기타 입력은 " + LIMITS.otherStrengthMin + "~" + LIMITS.otherStrengthMax + "자로 입력해 주세요." };
-    }
+    if (otherStrength1.length < LIMITS.otherStrengthMin) {
+  return { error: "강점① 기타 입력은 1자 이상 입력해 주세요." };
+}
     if (containsBannedWord(otherStrength1)) {
       return { error: "강점① 입력에 적절하지 않은 표현이 포함되어 있습니다." };
     }
@@ -353,9 +353,9 @@ function validateAndBuildPayload() {
   let otherReason1 = "";
   if (state.selectedReason1 === "기타 직접 입력") {
     otherReason1 = document.getElementById("other-reason1-input").value.trim();
-    if (otherReason1.length < LIMITS.otherReasonMin || otherReason1.length > LIMITS.otherReasonMax) {
-      return { error: "강점① 이유 기타 입력은 " + LIMITS.otherReasonMin + "~" + LIMITS.otherReasonMax + "자로 입력해 주세요." };
-    }
+    if (otherReason1.length < LIMITS.otherReasonMin) {
+  return { error: "강점① 이유 기타 입력은 1자 이상 입력해 주세요." };
+}
     if (containsBannedWord(otherReason1)) {
       return { error: "강점① 이유 입력에 적절하지 않은 표현이 포함되어 있습니다." };
     }
@@ -364,9 +364,9 @@ function validateAndBuildPayload() {
   let otherStrength2 = "";
   if (state.selectedStrength2 === "기타 직접 입력") {
     otherStrength2 = document.getElementById("other-strength2-input").value.trim();
-    if (otherStrength2.length < LIMITS.otherStrengthMin || otherStrength2.length > LIMITS.otherStrengthMax) {
-      return { error: "강점② 기타 입력은 " + LIMITS.otherStrengthMin + "~" + LIMITS.otherStrengthMax + "자로 입력해 주세요." };
-    }
+    if (otherStrength2.length < LIMITS.otherStrengthMin) {
+  return { error: "강점② 기타 입력은 1자 이상 입력해 주세요." };
+}
     if (containsBannedWord(otherStrength2)) {
       return { error: "강점② 입력에 적절하지 않은 표현이 포함되어 있습니다." };
     }
@@ -375,9 +375,9 @@ function validateAndBuildPayload() {
   let otherReason2 = "";
   if (state.selectedReason2 === "기타 직접 입력") {
     otherReason2 = document.getElementById("other-reason2-input").value.trim();
-    if (otherReason2.length < LIMITS.otherReasonMin || otherReason2.length > LIMITS.otherReasonMax) {
-      return { error: "강점② 이유 기타 입력은 " + LIMITS.otherReasonMin + "~" + LIMITS.otherReasonMax + "자로 입력해 주세요." };
-    }
+    if (otherReason2.length < LIMITS.otherReasonMin) {
+  return { error: "강점② 이유 기타 입력은 1자 이상 입력해 주세요." };
+}
     if (containsBannedWord(otherReason2)) {
       return { error: "강점② 이유 입력에 적절하지 않은 표현이 포함되어 있습니다." };
     }
@@ -385,14 +385,11 @@ function validateAndBuildPayload() {
 
   // 한마디: 선택 사항 — 비어 있으면 검증 통과, 값이 있을 때만 길이/금칙어 검사
   const message = document.getElementById("message-input").value.trim();
-  if (message) {
-    if (message.length < LIMITS.messageMin || message.length > LIMITS.messageMax) {
-      return { error: "한마디는 " + LIMITS.messageMin + "~" + LIMITS.messageMax + "자로 입력하거나, 비워두세요." };
-    }
-    if (containsBannedWord(message)) {
-      return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
-    }
+if (message) {
+  if (containsBannedWord(message)) {
+    return { error: "한마디에 적절하지 않은 표현이 포함되어 있습니다." };
   }
+}
 
   const payload = {
     action: "saveFeedback",
@@ -553,7 +550,8 @@ function renderResult(result) {
     document.getElementById("result-other-reason-wrap").classList.add("hidden");
   }
 
-  renderMessages(result['전체피드백모음'] || result['한마디모음']);
+  renderFeedbacks(result['전체피드백모음']);
+  renderMessages(result['한마디모음']);
 }
 
 // 강점 TOP3: "OO명의 친구가 추천했어요" 표현, 순위 강조 없이 동등하게
@@ -580,13 +578,13 @@ function renderReasonTags(containerId, items) {
     return '<span class="reason-tag">' + escapeHTML(label) + '</span>';
   }).join("");
 }
-function renderMessages(messagesRaw) {
-  const messages = String(messagesRaw || '').trim();
-  const wrap = document.getElementById("result-message-wrap");
-  const listEl = document.getElementById("result-message-list");
-  const moreBtn = document.getElementById("btn-message-more");
+function renderFeedbacks(feedbacksRaw) {
+  const feedbacks = String(feedbacksRaw || '').trim();
+  const wrap = document.getElementById("result-feedback-wrap");
+  const listEl = document.getElementById("result-feedback-list");
+  const moreBtn = document.getElementById("btn-feedback-more");
 
-  if (!messages) {
+  if (!feedbacks) {
     wrap.classList.add("hidden");
     listEl.innerHTML = "";
     moreBtn.classList.add("hidden");
@@ -596,12 +594,12 @@ function renderMessages(messagesRaw) {
   wrap.classList.remove("hidden");
 
   let list = [];
-  if (messages.indexOf("---FEEDBACK---") >= 0) {
-    list = messages.split("---FEEDBACK---").filter(function (m) {
+  if (feedbacks.indexOf("---FEEDBACK---") >= 0) {
+    list = feedbacks.split("---FEEDBACK---").filter(function (m) {
       return m.trim();
     });
   } else {
-    list = messages.split("\n").filter(function (m) {
+    list = feedbacks.split("\n").filter(function (m) {
       return m.trim();
     });
   }
@@ -624,6 +622,47 @@ function renderMessages(messagesRaw) {
         return '<div class="message-item">' +
           escapeHTML(m.trim()).replace(/\n/g, '<br>') +
           '</div>';
+      }).join("");
+      moreBtn.classList.add("hidden");
+    };
+  } else {
+    moreBtn.classList.add("hidden");
+  }
+}
+
+function renderMessages(messagesRaw) {
+  const messages = String(messagesRaw || '').trim();
+  const wrap = document.getElementById("result-message-wrap");
+  const listEl = document.getElementById("result-message-list");
+  const moreBtn = document.getElementById("btn-message-more");
+
+  if (!messages) {
+    wrap.classList.add("hidden");
+    listEl.innerHTML = "";
+    moreBtn.classList.add("hidden");
+    return;
+  }
+
+  wrap.classList.remove("hidden");
+
+  const list = messages.split("\n").filter(function (m) {
+    return m.trim();
+  });
+
+  const visibleCount = 5;
+  const visibleList = list.slice(0, visibleCount);
+  const hiddenList = list.slice(visibleCount);
+
+  listEl.innerHTML = visibleList.map(function (m) {
+    return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
+  }).join("");
+
+  if (hiddenList.length > 0) {
+    moreBtn.classList.remove("hidden");
+    moreBtn.textContent = "더 보기 (" + hiddenList.length + ")";
+    moreBtn.onclick = function () {
+      listEl.innerHTML += hiddenList.map(function (m) {
+        return '<div class="message-item">' + escapeHTML(m.trim()) + '</div>';
       }).join("");
       moreBtn.classList.add("hidden");
     };
